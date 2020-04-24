@@ -13,8 +13,9 @@ const (
 )
 
 var (
-	letters []rune = []rune{'m', 'o', 'n', 't', 'y', 'r', 'p'}
-	center  rune   = 'm'
+	letters     []rune           = []rune{'m', 'o', 'n', 't', 'y', 'r', 'p'}
+	center      rune             = 'm'
+	suffixcache map[int][]string = make(map[int][]string)
 )
 
 func subs(size int) (vals []string) {
@@ -23,17 +24,26 @@ func subs(size int) (vals []string) {
 	}
 	var str strings.Builder
 	for _, letter := range letters {
-		suffixes := subs(size - 1)
-		if len(suffixes) == 0 {
+		subsize := size - 1
+		suffixes, ok := suffixcache[subsize]
+		if !ok {
+			suffixes = subs(subsize)
+			suffixcache[subsize] = suffixes
+		}
+		nSuffix := len(suffixes)
+		if nSuffix == 0 {
 			str.Reset()
 			str.WriteRune(letter)
 			vals = append(vals, str.String())
+			continue
 		}
-		for _, suffix := range suffixes {
+		nVal := len(vals)
+		vals = append(vals, make([]string, nSuffix)...)
+		for i, suffix := range suffixes {
 			str.Reset()
 			str.WriteRune(letter)
 			str.WriteString(suffix)
-			vals = append(vals, str.String())
+			vals[nVal+i] = str.String()
 		}
 	}
 	return
